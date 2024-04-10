@@ -4,6 +4,7 @@ import getGoogleUrls from '../../utils/getGoogleUrls';
 // import cloudinary from '../../service/cloudinaryConfig';
 import { useToast } from '@chakra-ui/react';
 import { useHistory } from 'react-router-dom';
+import { useGoogleLogin } from '@react-oauth/google';
 
 
 
@@ -26,6 +27,76 @@ export default function Login() {
 
     const [show, setShow] = useState(false);
 
+
+    const connectWithBackend = async(code: any) => {
+
+      try {
+        setLoading(true);
+        const res = await fetch(`${process.env.REACT_APP_ROOT_API_URL}/api/user/google/oauth`, {
+          method: 'Post',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            code: code
+          }),
+        })
+
+        const data = await res.json();
+
+        if(!res.ok){
+          setLoading(false)
+          return toast({
+            title: `${data.mssg}`,
+            description: 'Something went wrong',
+            status: 'error',
+            duration: 9000,
+            isClosable: true,
+          })
+
+        }
+
+        localStorage.setItem('userInfo', JSON.stringify(data));
+
+        toast({
+          title:'Login succesful',
+          status:'success',
+          duration:5000,
+          isClosable:true,
+          position:'bottom'
+
+        });
+        setLoading(false)
+        history.push('/chats')
+
+        
+
+      } catch (error) {
+        if(error instanceof Error) {
+          setLoading(false)
+          return toast({
+            title: error.message,
+            status: 'error',
+            duration: 9000,
+            isClosable: true,
+          })
+        }
+        
+      }
+    }
+
+
+
+    const googleLogin = useGoogleLogin({
+      onSuccess: codeResponse => { 
+      
+        connectWithBackend(codeResponse.code)
+      },
+      onError: codeResponse => console.log(codeResponse),
+      flow: 'auth-code',
+      include_granted_scopes:true
+    });
+
     const handleInputChange = (e: any) => {
         const { name, value } = e.target;
         setUserData({ ...userData, [name]: value });
@@ -47,7 +118,7 @@ export default function Login() {
             return;
   
           }
-          console.log(email, username, password, avatar)
+          // console.log(email, username, password, avatar)
           setLoading(true)
           if(!username || !email || !password  || !avatar ){
             toast({
@@ -60,7 +131,7 @@ export default function Login() {
           }
 
           //signup request
-          const res = await fetch('http://localhost:8000/api/user/signup', {
+          const res = await fetch(`${process.env.REACT_APP_ROOT_API_URL}/api/user/signup`, {
             headers:{
               "Content-type": "application/json"
             },
@@ -82,7 +153,7 @@ export default function Login() {
             });
           }
           //signin request
-          const response = await fetch('http://localhost:8000/api/user/signin', {
+          const response = await fetch(`${process.env.REACT_APP_ROOT_API_URL}/api/user/signin`, {
                 headers:{
                   "Content-type": "application/json"
                 },
@@ -271,9 +342,10 @@ export default function Login() {
         colorScheme='green'
         w='100%'
         marginTop={15}
+        onClick={() => googleLogin()}
         
         >
-          <a href={getGoogleUrls()}>  Signup with Google</a>
+         Signup with Google
           
         </Button>
 

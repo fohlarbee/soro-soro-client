@@ -1,11 +1,15 @@
 import { BellIcon, ChevronDownIcon } from '@chakra-ui/icons';
-import { Avatar, Box, Button, Drawer, DrawerBody, DrawerContent, DrawerHeader, DrawerOverlay, Input, Menu, MenuButton, MenuDivider, MenuItem, MenuList, Spinner, Text, Tooltip, useDisclosure, useToast } from '@chakra-ui/react';
+import { Avatar, Box, Button, Drawer, DrawerBody, DrawerContent, DrawerHeader, DrawerOverlay, Image, Input, Menu, MenuButton, MenuDivider, MenuItem, MenuList, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Spinner, Text, Tooltip, useDisclosure, useToast, Modal } from '@chakra-ui/react';
 import React, { useContext, useState } from 'react'
 import { chatContext } from '../context/ChatContext';
 import { ProfileModal } from './ProfileModal';
 import { useHistory } from 'react-router-dom';
 import { ChatLoading } from './chatLoading';
 import { UserListItem } from './UserList';
+import { getSender, getSenderFull } from '../services/chatLogic';
+// import {} from 'react-notification-badge';
+// import NotificationBadge from 'react-notification-badge/lib/components/NotificationBadge';
+
 
 export const SideDrawer = () => {
     const [search, setSearch] = useState('')
@@ -15,13 +19,19 @@ export const SideDrawer = () => {
     const history = useHistory()
     const {isOpen, onClose,  onOpen,} = useDisclosure();
     const toast = useToast()
-    const {user, setSelectedChat, selectedChat, chats, setChats} = useContext(chatContext)
+    const {user, setSelectedChat, selectedChat, chats, setChats, notifications, setNotifications} = useContext(chatContext)
+
+
+    const handleProfileView = () =>{
+        console.log('yes')
+    }
 
 
 const accessChat = async(user_id: any) => {
     try {
+        // console.log(user_id)
         setloadingChat(true)
-        const res =  await fetch(`http://localhost:8000/api/chat`, {
+        const res =  await fetch(`${process.env.REACT_APP_ROOT_API_URL}/api/chat`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -32,6 +42,7 @@ const accessChat = async(user_id: any) => {
             })
         });
 
+        
         // console.log(res.ok)
         const data = await res.json()
         if(!res.ok){
@@ -46,10 +57,15 @@ const accessChat = async(user_id: any) => {
             })
         }
         // console.log('data re',data.data)
+
+        // console.log('this is it', data.data)
         if(!chats.find((c:any) => c._id === data.data._id)){
-            setChats([...chats, data.data])
+            // console.log('this is it', data.data)
+
+            setChats([data.data, ...chats])
+            // setChats([data.data, ...chats])
             setSelectedChat(data.data)
-            console.log('okay',data.data)
+            // console.log('okay',data.data)
 
         }
         // setSelectedChat(data.data)
@@ -72,11 +88,10 @@ const accessChat = async(user_id: any) => {
 }
     // console.log(user.data.Bearer)
     const logOut = () => {
-        // console.log('logout')
-        localStorage.removeItem('userInfo')
         // window.location.reload()
+        localStorage.removeItem('userInfo')
         history.push('/')
-    };
+    }
 
 
     const handleSearch = async() => {
@@ -92,7 +107,7 @@ const accessChat = async(user_id: any) => {
         try {
             setloading(true);
 
-            const res =  await fetch(`http://localhost:8000/api/user?search=${search}`, {
+            const res =  await fetch(`${process.env.REACT_APP_ROOT_API_URL}/api/user?search=${search}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -117,7 +132,6 @@ const accessChat = async(user_id: any) => {
             setloading(false)
 
             setsearchResult(data.users);
-            // console.log('THis is data', data.users)
             
         } catch (error:any) {
             if(error instanceof Error){
@@ -162,31 +176,68 @@ const accessChat = async(user_id: any) => {
             Soro-Soro
 
         </Text>
-        <div>
+        <Box>
             <Menu> 
                 <MenuButton padding={1}>
+                    <div style={{position:'absolute', 
+                    background:'red', 
+                    width:15, 
+                    height:15, 
+                    border:1, 
+                    borderRadius:15, 
+                    alignItems:'center', 
+                    justifyContent:'center'}}>
+                    <Text 
+                    fontSize={10}>{notifications.length}</Text>
+
+                    </div>
+                  
+                    
                     <BellIcon textColor='#000' fontSize='20px'/>
-                    {/* <MenuList></MenuList> */}
                 </MenuButton>
+
+                <MenuList color='#000' pl={2}>
+                    {!notifications.length && 'No new messages'}
+                    {notifications.map((notf: any) => (
+                        // console.log(notf)
+                        <MenuItem key={notf._id} onClick={() => {
+                            setSelectedChat(notf.chat);
+                            setNotifications(notifications.filter((n: any) => n !== notf))
+                        }} >
+                            {notf.chat.isGroupChat ? `New mesage in ${notf.chat.chatName}`
+                            : ` New message from ${getSender({loggedUser:user, users: notf.chat.users})}`}
+                        </MenuItem>
+                    ))}
+                </MenuList>
             </Menu>
             <Menu>
-                <MenuButton as={Button} rightIcon={<ChevronDownIcon/>}>
-                    <Avatar size='sm' cursor='ponter' name={user.data.user.username} src={user.data.user.avatar}/>
-                    <MenuList>
-                        <ProfileModal user={user}>
-                             <MenuItem>My profile</MenuItem>
-                        </ProfileModal>
-                        <MenuDivider/>
-                        <MenuItem  onClick={logOut}>Logout</MenuItem>
-                        <MenuItem onMouseDown={(e) => {e.stopPropagation(); console.log('yes')}}>
-                        press
-                   </MenuItem>
-                    </MenuList>
+                {({ isOpen }) => (
+                    <>
                     
-                </MenuButton>
+                    <MenuButton isActive={isOpen} as={Button} rightIcon={<ChevronDownIcon />}>
+                    <Avatar
+                    src={user.data.user.avatar}
+                    size='sm'
+                    />
+                        {/* {isOpen ? 'Close' : 'Open'} */}
+                    </MenuButton>
+                    <MenuList>
+                        <ProfileModal user={user.data.user}>
+                        <MenuItem fontFamily='Work sans' color='#000'>
+
+                        My Profile
+                        </MenuItem>
+
+                        </ProfileModal>
+
+                        <MenuDivider/>
+                        <MenuItem fontFamily='Work sans'  color='#000' onClick={logOut}>Logout</MenuItem>
+                    </MenuList>
+                    </>
+                )}
             </Menu>
            
-        </div>
+        </Box>
     </Box>
     <Drawer placement='left' isOpen={isOpen} onClose={onClose}>
         <DrawerOverlay/>
@@ -202,7 +253,7 @@ const accessChat = async(user_id: any) => {
                 <Box display='flex' paddingBottom={2}>
                         <Input
                         placeholder='search by name or email'
-                        marginRight={2}
+                        marginRight={2}  
                         value={search}
                         onChange={(e: any) => setSearch(e.target.value)}
                         />
@@ -222,6 +273,46 @@ const accessChat = async(user_id: any) => {
 
 
     </Drawer>
+
+
+
+  
+
+    {/* <Modal size='lg' isCentered isOpen={isOpen} onClose={onClose} >
+        <ModalOverlay />
+        <ModalContent height='400px'>
+          <ModalHeader
+          fontSize='30px'
+          fontFamily='Work sans'
+          display='flex'
+          justifyContent='center' 
+          >{user.data.user.username}</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody
+          display='flex'
+          flexDir='column'
+          alignItems='center'
+          justifyContent='center' 
+
+          >
+           <Image
+           alt={user.data.user.username }
+           src={user.data.user.avatar}
+           boxShadow={150}
+           borderRadius='full'
+           
+           />
+           <Text fontSize={{base:'20px', md:'12px'}} fontFamily='Work sans'><>Email</>: {user.data.user.email}</Text>
+
+           </ModalBody>
+
+          <ModalFooter>
+            <Button colorScheme='green' mr={3} onClick={onClose}>
+              Close
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal> */}
     </>
  
 )}

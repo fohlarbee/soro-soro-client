@@ -33,7 +33,7 @@ const GroupChatModal = ({children} :{children: ReactNode}) => {
           }
 
           setLoading(true);
-          const res =  await fetch(`http://localhost:8000/api/user?search=${query}`, {
+          const res =  await fetch(`${process.env.REACT_APP_ROOT_API_URL}/api/user?search=${query}`, {
             method: 'GET',
             headers: {
               'Content-Type': 'application/json',
@@ -78,7 +78,7 @@ const GroupChatModal = ({children} :{children: ReactNode}) => {
   const handleSubmit = async() => {
 
     try {
-      console.log('Heres it',groupChatName, selectedUsers)
+      // console.log('Heres it',groupChatName, selectedUsers)
       if(!groupChatName || !selectedUsers ){
         return toast({
           title:'Please fill all fields',
@@ -90,7 +90,7 @@ const GroupChatModal = ({children} :{children: ReactNode}) => {
       }
   
      setLoading(true);
-    const res =  await fetch(`http://localhost:8000/api/chat/group`, {
+    const res =  await fetch(`${process.env.REACT_APP_ROOT_API_URL}/api/chat/group`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -113,7 +113,7 @@ const GroupChatModal = ({children} :{children: ReactNode}) => {
         })
     }
     setLoading(false)
-    setChats([data.data, ...chats]);
+    setChats([...chats,data.data]);
     onClose()
   
     toast({

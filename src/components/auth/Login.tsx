@@ -4,6 +4,10 @@ import React, { EventHandler, ReactNode, useState } from 'react'
 import getGoogleUrls from '../../utils/getGoogleUrls';
 import { useToast } from '@chakra-ui/react';
 import { useHistory } from 'react-router-dom';
+import { GoogleLogin } from '@react-oauth/google';
+import { useGoogleLogin } from '@react-oauth/google';
+
+
 
 
 export default function Login() {
@@ -16,23 +20,98 @@ export default function Login() {
     const[avatar, setAvatar] = useState(null)
     const [show, setShow] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [authLoading,setAuthLoading ] = useState(false);
     const toast = useToast();
     const history = useHistory();
 
+    const connectWithBackend = async(code: any) => {
 
-    const handleInputChange = (e: any) => {
-        const { name, value } = e.target;
-        setUserData({ ...userData, [name]: value });
-      };
+      try {
+        setAuthLoading(true);
+        const res = await fetch(`${process.env.REACT_APP_ROOT_API_URL}/api/user/google/oauth`, {
+          method: 'Post',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            code: code
+          }),
+        })
+
+        const data = await res.json();
+
+        if(!res.ok){
+          setAuthLoading(false)
+          return toast({
+            title: `${data.mssg}`,
+            description: 'Something went wrong',
+            status: 'error',
+            duration: 9000,
+            isClosable: true,
+          })
+
+        }
+
+        localStorage.setItem('userInfo', JSON.stringify(data));
+
+        toast({
+          title:'Login succesful',
+          status:'success',
+          duration:5000,
+          isClosable:true,
+          position:'bottom'
+
+        });
+        setAuthLoading(false)
+        history.push('/chats')
+
+        
+
+      } catch (error) {
+        if(error instanceof Error) {
+          setAuthLoading(false)
+          return toast({
+            title: error.message,
+            status: 'error',
+            duration: 9000,
+            isClosable: true,
+          })
+        }
+        
+      }
+    }
+
+    const googleLogin = useGoogleLogin({
+
+      onSuccess: codeResponse => { 
+      
+        connectWithBackend(codeResponse.code)
+      },
+      onError: codeResponse => console.log(codeResponse),
+      flow: 'auth-code',
+      include_granted_scopes:true
+    });
+
+
+    // const handleInputChange = (e: any) => {
+    //     const { name, value } = e.target;
+    //     setUserData({ ...userData, [name]: value });
+    //   };
 
       const handleClick = () => {
             setShow(!show)
       }
+
+      const handleLoginWIthGoogle = () => {
+        getGoogleUrls()
+      }
     
         const handleSubmit = async() => {
             try {
+              // localStorage.removeItem('userInfo')
+
           
-              console.log( username, password)
+              // console.log( username, password)
               setLoading(true)
               if(!username || !password){
                 toast({
@@ -43,7 +122,7 @@ export default function Login() {
                   position:'bottom'            
                 })
               }
-              const res = await fetch('http://localhost:8000/api/user/signin', {
+              const res = await fetch(`${process.env.REACT_APP_ROOT_API_URL}/api/user/signin`, {
                 headers:{
                   "Content-type": "application/json"
                 },
@@ -55,7 +134,7 @@ export default function Login() {
                 setLoading(false)
     
                 const data = await res.json()
-                console.log(data)
+                // console.log(data)
                 return toast({
                   title:data.mssg,
                   status:'error',
@@ -141,6 +220,7 @@ export default function Login() {
         w='100%'
         marginTop={15}
         onClick={handleSubmit}
+        isLoading={loading}
         >
             Login
         </Button>
@@ -148,12 +228,12 @@ export default function Login() {
         colorScheme='green'
         w='100%'
         marginTop={15}
-        // onClick={handleSubmit}
+        onClick={() => googleLogin()}
+        isLoading={authLoading}
         >
-            <a href={getGoogleUrls()}>
+            {/* <a onClick={handleLoginWIthGoogle} > */}
             Login with Google
 
-            </a>
         </Button>
         <Button
         colorScheme='red'
@@ -161,7 +241,7 @@ export default function Login() {
         marginTop={15}
         onClick={() => {
             setUsername('Fohlarbee')
-            setPassword('Sammyola@1')
+            setPassword('Sammyola246@1')
         }}
         >
           Guest

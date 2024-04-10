@@ -8,15 +8,18 @@ import GroupChatModal from './GroupChatModal';
 
 export const MycChats = ({fetchAgain}:any) => {
   const [loggedUser, setLoggedUser] = useState()
-  const {user, chats, setChats, selectedChat, setSelectedChat} = useContext(chatContext);
+  const {user, chats, setChats, selectedChat, setSelectedChat, setNotifications, notifications} = useContext(chatContext);
   const toast =useToast();
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false)
   
 
 
   const fetchChats = async() => {
+
+    setLoading(true)
     try {
-      const res =  await fetch(`http://localhost:8000/api/chat`, {
+      const res =  await fetch(`${process.env.REACT_APP_ROOT_API_URL}/api/chat`, {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',
@@ -27,8 +30,9 @@ export const MycChats = ({fetchAgain}:any) => {
     const data = await res.json()
     setError(data.mssg)
 
-    console.log('chat data', data)
+    // console.log('chat data', data)
     if(!res.ok){
+      setLoading(false)
       return toast({
         title:`${data.mssg}`,
         description:'An Error occured',
@@ -41,9 +45,11 @@ export const MycChats = ({fetchAgain}:any) => {
     }
 
     setChats(data.data)
+    setLoading(false)
+    // console.log('chats from db' ,data.data)
       
     } catch (error) {
-
+      setLoading(false)
       return toast({
         title: `${error}`,
         description:'Unable to fetch your chats',
@@ -121,13 +127,19 @@ export const MycChats = ({fetchAgain}:any) => {
 
       >
 
-    {chats ? 
-
+    {loading ? (    <div style={{justifyContent:'center', display:'flex'}}>Loading chats...</div> )
+      :
       (
         <Stack overflowY= 'scroll'>
           {chats.map((chat: any) => (
             <Box
-            onClick={() => setSelectedChat(chat)}
+            onClick={() => { 
+              setSelectedChat(chat)
+              // console.log('latest notification id',notifications)
+              // console.log('latest, message',chat.latestMessage._id)
+              setNotifications(notifications.filter((n:any) => n !== chat.latestMessage))
+              
+            }}
             cursor='pointer'
             key={chat._id}
             display='flex'
@@ -141,16 +153,14 @@ export const MycChats = ({fetchAgain}:any) => {
             borderRadius='1g'
             borderWidth='1px'
             >
-              <Text>
-                {!chat.isGroupChat ? getSender({loggedUser, users:chat.users}) : chat.chatName}
+              <Text fontFamily='Work sans'>
+                {!chat.isGroupChat ? getSender({loggedUser:user, users:chat.users}) : chat.chatName}
               </Text>
             </Box>
           ))}
         </Stack>
       )
-
-    : 
-    <ChatLoading/>
+    // <ChatLoading/>
     }
    
   

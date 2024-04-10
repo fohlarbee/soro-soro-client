@@ -6,7 +6,7 @@ import UserBadgeItem from './UserBadgeItem'
 import { UserListItem } from './UserList'
 import { ChatLoading } from './chatLoading'
 
-const UpdateGroupChatModal = ({fetchAgain, setFetchAgain}: any) => {
+const UpdateGroupChatModal = ({fetchAgain, setFetchAgain, fetchMessages}: any) => {
     const {isOpen, onOpen, onClose} = useDisclosure()
 
     const [groupChatName, setGroupChatName] = useState('');
@@ -49,7 +49,7 @@ const UpdateGroupChatModal = ({fetchAgain, setFetchAgain}: any) => {
             // }
             
             setRenameLoading(true)
-            const res =  await fetch(`http://localhost:8000/api/chat/removefromgroup`, {
+            const res =  await fetch(`${process.env.REACT_APP_ROOT_API_URL}/api/chat/removefromgroup`, {
                 method: 'PUT',
                 headers: {
                   'Content-Type': 'application/json',
@@ -71,8 +71,9 @@ const UpdateGroupChatModal = ({fetchAgain, setFetchAgain}: any) => {
               }
             //   console.log('this is it', data)
               userToRemove._id === user.data.user._id ? setSelectedChat('') : setSelectedChat(data.data)
-              setFetchAgain(!fetchAgain)
-              setRenameLoading(false)
+              setFetchAgain(!fetchAgain);
+              fetchMessages();
+              setRenameLoading(false);
 
             
         } catch (error) {
@@ -113,7 +114,7 @@ const UpdateGroupChatModal = ({fetchAgain, setFetchAgain}: any) => {
             }
 
             setLoading(true)
-            const res =  await fetch(`http://localhost:8000/api/chat/addtogroup`, {
+            const res =  await fetch(`${process.env.REACT_APP_ROOT_API_URL}/api/chat/addtogroup`, {
                 method: 'PUT',
                 headers: {
                   'Content-Type': 'application/json',
@@ -161,7 +162,7 @@ const UpdateGroupChatModal = ({fetchAgain, setFetchAgain}: any) => {
         try {
               setRenameLoading(true);
 
-              const res =  await fetch(`http://localhost:8000/api/chat/renamegroup`, {
+              const res =  await fetch(`${process.env.REACT_APP_ROOT_API_URL}/api/chat/renamegroup`, {
                 method: 'PUT',
                 headers: {
                   'Content-Type': 'application/json',
@@ -224,7 +225,7 @@ const UpdateGroupChatModal = ({fetchAgain, setFetchAgain}: any) => {
         })
         }
         setLoading(true);
-        const res =  await fetch(`http://localhost:8000/api/user?search=${query}`, {
+        const res =  await fetch(`${process.env.REACT_APP_ROOT_API_URL}/api/user?search=${query}`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -268,7 +269,7 @@ const UpdateGroupChatModal = ({fetchAgain, setFetchAgain}: any) => {
 
         try {
             setRenameLoading(true)
-            const res =  await fetch(`http://localhost:8000/api/chat/removefromgroup`, {
+            const res =  await fetch(`${process.env.REACT_APP_ROOT_API_URL}/api/chat/removefromgroup`, {
                 method: 'PUT',
                 headers: {
                   'Content-Type': 'application/json',

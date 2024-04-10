@@ -5,10 +5,10 @@ import {useDisclosure} from '@chakra-ui/hooks'
 import React from 'react'
 import { useHistory } from 'react-router-dom'
 
-export const ProfileModal = ({user, children} :any) => {
+export const ProfileModal = ({user, children, onPress} :any) => {
 
     const history = useHistory();
-    const {isOpen, onClose,  onOpen,} = useDisclosure();
+    const {isOpen, onClose,  onOpen} = useDisclosure();
 
     const logOut = () => {
         localStorage.removeItem('userInfo')
@@ -28,6 +28,7 @@ export const ProfileModal = ({user, children} :any) => {
           fontFamily='Work sans'
           display='flex'
           justifyContent='center' 
+        
           >{user.username}</ModalHeader>
           <ModalCloseButton />
           <ModalBody
@@ -41,6 +42,8 @@ export const ProfileModal = ({user, children} :any) => {
            alt={user.username}
            src={user.avatar}
            boxShadow={150}
+           width={100}
+           height={100}
            borderRadius='full'
            
            />
