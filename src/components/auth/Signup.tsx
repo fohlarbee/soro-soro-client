@@ -1,6 +1,5 @@
 import { Button, FormControl, FormLabel, Input, InputGroup, InputRightElement, VStack } from '@chakra-ui/react'
 import React, { useState } from 'react'
-import getGoogleUrls from '../../utils/getGoogleUrls';
 // import cloudinary from '../../service/cloudinaryConfig';
 import { useToast } from '@chakra-ui/react';
 import { useHistory } from 'react-router-dom';

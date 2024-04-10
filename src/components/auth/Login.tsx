@@ -1,7 +1,6 @@
 import { Button, FormControl, FormLabel, Input, InputGroup, InputRightElement, VStack } from '@chakra-ui/react'
 import { AnyRecord } from 'dns';
 import React, { EventHandler, ReactNode, useState } from 'react'
-import getGoogleUrls from '../../utils/getGoogleUrls';
 import { useToast } from '@chakra-ui/react';
 import { useHistory } from 'react-router-dom';
 import { GoogleLogin } from '@react-oauth/google';
@@ -103,7 +102,6 @@ export default function Login() {
       }
 
       const handleLoginWIthGoogle = () => {
-        getGoogleUrls()
       }
     
         const handleSubmit = async() => {
