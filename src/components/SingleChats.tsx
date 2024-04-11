@@ -13,7 +13,7 @@ import Lottie from 'react-lottie'
 
 
 
-const ENDPOINT = 'http://localhost:8000'
+const ENDPOINT = process.env.REACT_APP_ROOT_API_URL as string
 let  socket: any 
 let selectedChatCompare: any
 

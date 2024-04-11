@@ -23,12 +23,13 @@ export default function Login() {
     const toast = useToast();
     const history = useHistory();
 
-    const connectWithBackend = async(code: any) => {
+    const connectWithBackend = async(code: string) => {
 
       try {
+        // console.log(code)
         setAuthLoading(true);
         const res = await fetch(`${process.env.REACT_APP_ROOT_API_URL}/api/user/google/oauth`, {
-          method: 'Post',
+          method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
@@ -83,6 +84,7 @@ export default function Login() {
     const googleLogin = useGoogleLogin({
 
       onSuccess: codeResponse => { 
+        console.log(codeResponse)
       
         connectWithBackend(codeResponse.code)
       },
